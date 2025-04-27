@@ -39,6 +39,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.solvynix.quickdl.VideoPlayerScreenDest
 
 
 @Composable
@@ -59,11 +60,17 @@ fun VideoCard(videoDetails: VideoInfo, cardSizes: CardSizes, navController: NavC
                 detectTapGestures(
                     onLongPress = { isDeleteVisible = true },
                     onTap = {
-                        if(isDeleteVisible){
+                        if (isDeleteVisible) {
                             isDeleteVisible = false
-                        }
-                        else{
-                            navController.navigate("videoDetails/${videoDetails.url}")
+                        } else {
+                            navController.navigate(
+                                VideoPlayerScreenDest(
+                                    videoDetails.path ?: "",
+                                    videoDetails.title ?: "",
+                                    videoDetails.videoPath ?: "",
+                                    videoDetails.audioPath ?: ""
+                                )
+                            )
                         }
                     }
                 )
@@ -110,16 +117,27 @@ fun VideoCard(videoDetails: VideoInfo, cardSizes: CardSizes, navController: NavC
                             .height(cardSizes.cardWidth / 2)
                     ) {
                         val resolution = if(videoDetails.width !=null && videoDetails.height!=null) "${videoDetails.width}x${videoDetails.height}" else ""
-                        Text(videoDetails.extractor?:"", modifier = Modifier.align(Alignment.TopStart).padding(4.dp))
-                        Text(resolution, Modifier.align(Alignment.TopEnd).padding(4.dp))
-                        Text(videoDetails.speed, fontSize = cardSizes.textSize, modifier =Modifier.align(Alignment.BottomStart).padding(horizontal=4.dp))
-                        Text("${videoDetails.progress}%", fontSize = cardSizes.textSize, modifier =  Modifier.align(Alignment.BottomEnd).padding(horizontal=4.dp))
+                        Text(videoDetails.extractor?:"", modifier = Modifier
+                            .align(Alignment.TopStart)
+                            .padding(4.dp))
+                        Text(resolution, Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(4.dp))
+
 
                         if(videoDetails.status=="Downloading Files"){
+                            Text(videoDetails.speed, fontSize = cardSizes.textSize, modifier =Modifier
+                                .align(Alignment.BottomStart)
+                                .padding(horizontal = 4.dp))
+                            Text("${videoDetails.progress}%", fontSize = cardSizes.textSize, modifier =  Modifier
+                                .align(Alignment.BottomEnd)
+                                .padding(horizontal = 4.dp))
                             LinearProgressIndicator(
-                                progress = { videoDetails.progress.toFloat() },
-                                modifier = Modifier.align(Alignment.BottomStart).height(5.dp).fillMaxWidth()
-                            )                        }
+                                progress = { videoDetails.progress.toFloat()/100 },
+                                modifier = Modifier.fillMaxWidth()
+                                    .align(Alignment.BottomStart)
+                                    .height(5.dp)
+                            )                       }
                     }
                     if (videoDetails.thumbnail == null) {
                         Box(
@@ -185,11 +203,12 @@ fun VideoCardPreview() {
             width = null,
             height = null,
             fileSize = null,
-            status = null,
+            status = "Downloading Files",
             extractor = null,
             uploader = null,
             audioFormat = null,
-            videoFormat = null
+            videoFormat = null,
+            progress = 100
         )
         VideoCard(videoDetails, cardSizes, rememberNavController())
     }

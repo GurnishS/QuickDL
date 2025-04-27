@@ -2,6 +2,7 @@ package com.solvynix.quickdl.ui.screens.player
 
 import android.view.ViewGroup
 import android.widget.FrameLayout
+import androidx.annotation.OptIn
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -16,10 +17,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
+import androidx.media3.exoplayer.source.MergingMediaSource
 import androidx.media3.ui.PlayerView
 import androidx.navigation.NavController
 
+@OptIn(UnstableApi::class)
 @Composable
 fun VideoPlayerScreen(
     navController: NavController,
@@ -28,7 +33,6 @@ fun VideoPlayerScreen(
     videoUri: String,
     audioUri: String
 ) {
-//    Text(uri)
     val context = LocalContext.current
 
     // Remember and restore playback position
@@ -36,7 +40,21 @@ fun VideoPlayerScreen(
 
     val exoPlayer = remember {
         ExoPlayer.Builder(context).build().apply {
-            setMediaItem(MediaItem.fromUri(uri.toUri()))
+            val mediaSourceFactory = DefaultMediaSourceFactory(context)
+
+            val mediaSource = if (uri.isNotEmpty()) {
+                // Play both video and audio from the same URI
+                mediaSourceFactory.createMediaSource(MediaItem.fromUri(uri.toUri()))
+            } else {
+                // Play video and audio from separate URIs
+                val videoSource = mediaSourceFactory.createMediaSource(MediaItem.fromUri(videoUri.toUri()))
+                val audioSource = mediaSourceFactory.createMediaSource(MediaItem.fromUri(audioUri.toUri()))
+
+                // Merge video and audio sources
+                MergingMediaSource(videoSource, audioSource)
+            }
+
+            setMediaSource(mediaSource)
             seekTo(playbackPosition) // Restore previous position
             prepare()
             playWhenReady = true
