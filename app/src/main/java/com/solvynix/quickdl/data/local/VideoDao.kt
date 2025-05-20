@@ -13,7 +13,7 @@ interface VideoDao {
     suspend fun upsertVideo(videoInfo: VideoInfo)
 
     @Delete
-    suspend fun deleteVideo(videoInfo: VideoInfo)
+    suspend fun deleteVideo(videoUrl: VideoInfo)
 
     @Query("SELECT * FROM videos")
     fun getAllVideos(): Flow<List<VideoInfo>>

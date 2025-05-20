@@ -19,6 +19,7 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -49,7 +50,8 @@ fun SearchBar(state: DownloadsScreenState, onEvent: (DownloadsScreenEvent) -> Un
     val context = LocalContext.current
 
     fun onDownload() {
-        onEvent(DownloadsScreenEvent.onDownloadClicked)
+        onEvent(DownloadsScreenEvent.onDownloadClicked(context))
+        onEvent(DownloadsScreenEvent.setUrl(""))
         Toast.makeText(context, "Download started...", Toast.LENGTH_SHORT).show()
     }
 
@@ -76,11 +78,12 @@ fun SearchBar(state: DownloadsScreenState, onEvent: (DownloadsScreenEvent) -> Un
                 .padding(horizontal = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            Icon(imageVector = Icons.Default.Search, contentDescription = "Search Icon",tint=Color.Gray)
             BasicTextField(
                 value = state.inputUrl,
                 onValueChange = {onEvent(DownloadsScreenEvent.setUrl(it))},
                 singleLine = true,
-                textStyle = TextStyle.Default.copy(fontSize = 16.sp),
+                textStyle = TextStyle.Default.copy(fontSize = 16.sp, color = MaterialTheme.colorScheme.inverseSurface),
                 modifier = Modifier.weight(1f),
                 keyboardOptions = KeyboardOptions.Default.copy(
                     imeAction = ImeAction.Search
@@ -92,19 +95,9 @@ fun SearchBar(state: DownloadsScreenState, onEvent: (DownloadsScreenEvent) -> Un
                         contentAlignment = Alignment.CenterStart
                     ) {
                         if (state.inputUrl.isEmpty()) {
-                            Row {
-                                Icon(
-                                    imageVector = Icons.Default.Search,
-                                    contentDescription = "Search",
-                                    tint = Color.Gray
-                                )
-                                Spacer(Modifier.width(8.dp))
-                                Text("Search...", color = Color.Gray, fontSize = 18.sp)
-                            }
-
+                            Text("Search...", color = Color.Gray, fontSize = 18.sp)
                         }
                         innerTextField()
-
                     }
                 }
             )
@@ -115,7 +108,7 @@ fun SearchBar(state: DownloadsScreenState, onEvent: (DownloadsScreenEvent) -> Un
         ElevatedButton(
             onClick = { onDownload() },
             shape = RoundedCornerShape(32.dp),
-            colors = ButtonDefaults.elevatedButtonColors()
+            colors = ButtonDefaults.elevatedButtonColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer)
         ) {
             Icon(
                 painter = painterResource(R.drawable.download_icon),

@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Card
@@ -36,14 +37,23 @@ import com.solvynix.quickdl.data.local.VideoInfo
 import com.solvynix.quickdl.models.CardSizes
 import com.solvynix.quickdl.ui.theme.QuickDLTheme
 import androidx.compose.runtime.*
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.input.pointer.motionEventSpy
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import coil.compose.rememberAsyncImagePainter
+import coil.compose.rememberImagePainter
+import coil.request.ImageRequest
 import com.solvynix.quickdl.VideoPlayerScreenDest
+import com.solvynix.quickdl.ui.screens.downloads.DownloadsViewModel
+import kotlinx.coroutines.launch
 
 
 @Composable
-fun VideoCard(videoDetails: VideoInfo, cardSizes: CardSizes, navController: NavController) {
+fun VideoCard(videoDetails: VideoInfo, cardSizes: CardSizes, navController: NavController,onDelete: (VideoInfo) -> Unit) {
 
     var isDeleteVisible by remember { mutableStateOf(false) }
     val offsetX = remember { Animatable(0f) }
@@ -51,6 +61,8 @@ fun VideoCard(videoDetails: VideoInfo, cardSizes: CardSizes, navController: NavC
         targetValue = if (isDeleteVisible) 40.dp else 0.dp,
         animationSpec = tween(durationMillis = 300)
     )
+
+    val scope = rememberCoroutineScope()
 
     Card(
         Modifier
@@ -63,14 +75,17 @@ fun VideoCard(videoDetails: VideoInfo, cardSizes: CardSizes, navController: NavC
                         if (isDeleteVisible) {
                             isDeleteVisible = false
                         } else {
-                            navController.navigate(
-                                VideoPlayerScreenDest(
-                                    videoDetails.path ?: "",
-                                    videoDetails.title ?: "",
-                                    videoDetails.videoPath ?: "",
-                                    videoDetails.audioPath ?: ""
+                            print("Here")
+                            if(videoDetails.status=="Downloaded"){
+                                navController.navigate(
+                                    VideoPlayerScreenDest(
+                                        videoDetails.path ?: "",
+                                        videoDetails.title ?: "",
+                                        videoDetails.videoPath ?: "",
+                                        videoDetails.audioPath ?: ""
+                                    )
                                 )
-                            )
+                            }
                         }
                     }
                 )
@@ -84,7 +99,7 @@ fun VideoCard(videoDetails: VideoInfo, cardSizes: CardSizes, navController: NavC
             Box(Modifier.width(boxWidth)){
                 IconButton(
                     onClick = {
-                        isDeleteVisible = false
+                        onDelete(videoDetails)
                     },
                     modifier = Modifier.align(Alignment.Center),
                     content = {
@@ -105,11 +120,31 @@ fun VideoCard(videoDetails: VideoInfo, cardSizes: CardSizes, navController: NavC
                             .fillMaxWidth(),
                         contentAlignment = Alignment.Center
                     ) {
-                        Image(
-                            modifier = Modifier.height(cardSizes.cardWidth / 2),
-                            painter = painterResource(id = R.drawable.thumbnail),
-                            contentDescription = "Thumbnail"
-                        )
+                        if(videoDetails.thumbnailPath.isNullOrBlank()){
+                            Image(
+                                modifier = Modifier.height(cardSizes.cardWidth / 2),
+                                painter = painterResource( R.drawable.thumbnail),
+                                contentDescription = "Thumbnail"
+                            )
+                        }
+                        else{
+                            // Load image from file path if exists
+                            val painter =
+                                // You can set various configurations here (placeholders, error handling, etc.)
+                                rememberAsyncImagePainter(
+                                    ImageRequest.Builder(LocalContext.current)
+                                        .data(data = videoDetails.thumbnailPath).apply(block = fun ImageRequest.Builder.() {
+                                            // You can set various configurations here (placeholders, error handling, etc.)
+                                            crossfade(true)
+                                        }).build()
+                                )
+                            Image(
+                                modifier = Modifier.fillMaxWidth().height(cardSizes.cardWidth / 2),
+                                painter = painter,
+                                contentDescription = "Thumbnail",
+                                contentScale = ContentScale.FillBounds
+                            )
+                        }
                     }
                     Box(
                         modifier = Modifier
@@ -117,21 +152,35 @@ fun VideoCard(videoDetails: VideoInfo, cardSizes: CardSizes, navController: NavC
                             .height(cardSizes.cardWidth / 2)
                     ) {
                         val resolution = if(videoDetails.width !=null && videoDetails.height!=null) "${videoDetails.width}x${videoDetails.height}" else ""
-                        Text(videoDetails.extractor?:"", modifier = Modifier
-                            .align(Alignment.TopStart)
-                            .padding(4.dp))
-                        Text(resolution, Modifier
-                            .align(Alignment.TopEnd)
-                            .padding(4.dp))
-
+                        Box(Modifier.clip(RoundedCornerShape(bottomEnd = 4.dp)).background(Color(0x99000000)).padding(start = 4.dp).align(Alignment.TopStart)){
+                            Text(videoDetails.extractor?:"", color = Color.White
+                                )
+                        }
+                        Box(Modifier.clip(RoundedCornerShape(bottomStart = 4.dp)).background(Color(0x99000000)).padding(end = 4.dp).align(Alignment.TopEnd)) {
+                            Text(
+                                resolution, color = Color.White
+                            )
+                        }
 
                         if(videoDetails.status=="Downloading Files"){
-                            Text(videoDetails.speed, fontSize = cardSizes.textSize, modifier =Modifier
+                            Box(modifier =Modifier
+                                .clip(RoundedCornerShape(4.dp))
+                                .background(Color(0x99000000))
                                 .align(Alignment.BottomStart)
-                                .padding(horizontal = 4.dp))
-                            Text("${videoDetails.progress}%", fontSize = cardSizes.textSize, modifier =  Modifier
+                                .padding(horizontal = 4.dp)){
+                                Text(videoDetails.speed, fontSize = cardSizes.textSize, color = Color.White)
+                            }
+                            Box(modifier =Modifier
+                                .clip(RoundedCornerShape(4.dp))
                                 .align(Alignment.BottomEnd)
-                                .padding(horizontal = 4.dp))
+                                .background(Color(0x99000000))
+                                .padding(horizontal = 4.dp)) {
+                                Text(
+                                    "${videoDetails.progress}%",
+                                    fontSize = cardSizes.textSize
+                                    , color = Color.White
+                                )
+                            }
                             LinearProgressIndicator(
                                 progress = { videoDetails.progress.toFloat()/100 },
                                 modifier = Modifier.fillMaxWidth()
@@ -208,8 +257,12 @@ fun VideoCardPreview() {
             uploader = null,
             audioFormat = null,
             videoFormat = null,
+            thumbnailPath = null,
             progress = 100
         )
-        VideoCard(videoDetails, cardSizes, rememberNavController())
-    }
+        val onDelete: (VideoInfo) -> Unit = { videoInfo ->
+            // Handle the delete action, for example:
+            println("Deleting video: ${videoInfo.title}")
+        }
+        VideoCard(videoDetails = videoDetails, cardSizes = cardSizes, navController = rememberNavController(), onDelete = onDelete)    }
 }

@@ -27,5 +27,6 @@ data class VideoInfo(
     val videoSpeed:Int=0,
     val audioSpeed:Int=0,
     val speed:String="0 KB/s",
+    var thumbnailPath:String?,
 //    val id: Int=0,
 )

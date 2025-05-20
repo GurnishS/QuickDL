@@ -74,6 +74,7 @@ fun calculateCardSizes(): CardSizes {
 fun VideoGrid(
     videos: List<VideoInfo>,
     navController: NavController,
+    onDelete: (VideoInfo) -> Unit,
     modifier: Modifier,
 ){
     val cardSizes= calculateCardSizes()
@@ -86,7 +87,7 @@ fun VideoGrid(
     ) {
         for (video in videos) {
             item {
-                VideoCard(video,cardSizes,navController)
+                VideoCard(video,cardSizes,navController,onDelete)
             }
         }
 

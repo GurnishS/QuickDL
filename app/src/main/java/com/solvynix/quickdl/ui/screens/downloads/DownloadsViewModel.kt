@@ -1,5 +1,7 @@
 package com.solvynix.quickdl.ui.screens.downloads
 
+import android.content.Context
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.solvynix.quickdl.data.chaquopy.ChaquopyHandler
@@ -13,7 +15,14 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.io.File
+import java.io.FileOutputStream
+import java.io.InputStream
+import java.net.HttpURLConnection
+import java.net.URL
 import kotlin.math.roundToInt
+import android.content.SharedPreferences
+
 
 class DownloadsViewModel(private val dao: VideoDao) : ViewModel() {
 
@@ -21,6 +30,7 @@ class DownloadsViewModel(private val dao: VideoDao) : ViewModel() {
     val state: StateFlow<DownloadsScreenState> = _state.asStateFlow()
 
     init {
+        println("View Model Initialised")
         viewModelScope.launch() {
             dao.getAllVideos().collect { videos ->
                 _state.value = _state.value.copy(videos = videos)
@@ -30,12 +40,15 @@ class DownloadsViewModel(private val dao: VideoDao) : ViewModel() {
 
     fun onEvent(event: DownloadsScreenEvent) {
         when (event) {
-            is DownloadsScreenEvent.onDownloadClicked -> startDownload()
+            is DownloadsScreenEvent.onDownloadClicked ->startDownload(event.context)
+
             is DownloadsScreenEvent.setAudioQuality -> {
                 _state.update {
                     it.copy(audioQuality = event.audioQuality)
                 }
             }
+
+            is DownloadsScreenEvent.deleteVideo-> deleteFiles(event.videoInfo)
 
             is DownloadsScreenEvent.setUrl -> {
                 _state.update { it.copy(inputUrl = event.inputUrl) }
@@ -89,7 +102,7 @@ class DownloadsViewModel(private val dao: VideoDao) : ViewModel() {
 
 
 
-    private fun startDownload() {
+    private fun startDownload(context: Context) {
         val currentState = _state.value
 
         val placeholderVideo = VideoInfo(
@@ -99,6 +112,7 @@ class DownloadsViewModel(private val dao: VideoDao) : ViewModel() {
             duration = null, width = null, height = null, fileSize = null,
             status = "Fetching Info", extractor = null, uploader = null,
             audioFormat = null, videoFormat = null, audioProgress = 0, videoProgress = 0, speed = "0 KB/s",
+            thumbnailPath = null
         )
 
         // 🔹 Immediately update UI
@@ -133,6 +147,12 @@ class DownloadsViewModel(private val dao: VideoDao) : ViewModel() {
 
             dao.upsertVideo(updatedVideo) // Update with real data
 
+            if(!updatedVideo.thumbnail.isNullOrBlank()){
+                val path=downloadThumbnail(context,updatedVideo.thumbnail,updatedVideo.thumbnail)
+                updatedVideo.thumbnailPath=path;
+                dao.upsertVideo(updatedVideo)
+            }
+
 
             if(videoMap["videoFormat"]!=null && videoMap["audioFormat"]!=null){
                 val videoJob=viewModelScope.async(Dispatchers.IO) {
@@ -166,12 +186,6 @@ class DownloadsViewModel(private val dao: VideoDao) : ViewModel() {
                 }
             }
 
-
-
-
-
-
-
         }
     }
 
@@ -186,6 +200,92 @@ class DownloadsViewModel(private val dao: VideoDao) : ViewModel() {
         )
     }
 
+    private fun deleteFiles(videoInfo: VideoInfo) {
+        videoInfo.audioPath?.let { audioPath ->
+            viewModelScope.launch(Dispatchers.IO) {
+                deleteFile(audioPath, "Audio")
+            }
+        }
+
+        videoInfo.videoPath?.let { videoPath ->
+            viewModelScope.launch(Dispatchers.IO) {
+                deleteFile(videoPath, "Video")
+            }
+        }
+
+        videoInfo.path?.let { additionalPath ->
+            viewModelScope.launch(Dispatchers.IO) {
+                deleteFile(additionalPath, "Path")
+            }
+        }
+
+        viewModelScope.launch {
+            dao.deleteVideo(videoInfo)
+        }
+    }
+
+    private fun deleteFile(filePath: String, fileType: String) {
+        val file = File(filePath)
+        if (file.exists()) {
+            try {
+                if (file.delete()) {
+                    Log.d("$fileType File Delete", "File deleted successfully: $filePath")
+                } else {
+                    Log.d("$fileType File Delete", "Failed to delete $fileType file: $filePath")
+                }
+            } catch (e: Exception) {
+                Log.e("$fileType File Delete", "Error deleting $fileType file: $filePath", e)
+            }
+        } else {
+            Log.d("$fileType File Delete", "$fileType file does not exist: $filePath")
+        }
+    }
+
+
+    fun downloadThumbnail(context: Context, urlString: String, fileName: String): String? {
+        try {
+            // Sanitize the URL to create a valid filename
+            val sanitizedFileName = sanitizeUrl(urlString)
+
+            // Create the 'thumbnails' folder inside internal storage if it doesn't exist
+            val thumbnailsDir = File(context.filesDir, "thumbnails")
+            if (!thumbnailsDir.exists()) {
+                thumbnailsDir.mkdirs()
+            }
+
+            // Create the final file inside thumbnails with the sanitized file name
+            val outputFile = File(thumbnailsDir, sanitizedFileName)
+
+            // Start downloading
+            val url = URL(urlString)
+            val connection = url.openConnection() as HttpURLConnection
+            connection.doInput = true
+            connection.connect()
+
+            val inputStream: InputStream = connection.inputStream
+            val outputStream = FileOutputStream(outputFile)
+
+            val buffer = ByteArray(4096)
+            var bytesRead: Int
+            while (inputStream.read(buffer).also { bytesRead = it } != -1) {
+                outputStream.write(buffer, 0, bytesRead)
+            }
+
+            outputStream.close()
+            inputStream.close()
+
+            println("Image saved at: ${outputFile.absolutePath}")
+            return outputFile.absolutePath
+        } catch (e: Exception) {
+            Log.e("Thumbnail Download Error", "Error downloading thumbnail: ${e.message}", e)
+        }
+        return null
+    }
+
+    // Function to sanitize the URL and create a valid filename
+    fun sanitizeUrl(url: String): String {
+        return url.hashCode().toString() // Using hashcode of URL as the filename
+    }
 
 
 
