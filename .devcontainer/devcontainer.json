@@ -1,0 +1,50 @@
+{
+  "name": "QuickDL - Kotlin Android Development",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+  
+  "features": {
+    "ghcr.io/devcontainers/features/java:1": {
+      "version": "17",
+      "installGradle": "true"
+    },
+    "ghcr.io/devcontainers/features/android-sdk:1": {
+      "platformVersion": "35",
+      "buildToolsVersion": "35.0.0",
+      "ndkVersion": "26.3.11579264",
+      "cmdLineToolsVersion": "latest"
+    },
+    "ghcr.io/devcontainers/features/python:1": {
+      "version": "3.11"
+    }
+  },
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "mathiasfrohlich.Kotlin",
+        "vscjava.vscode-java-pack",
+        "vscjava.vscode-gradle",
+        "ms-python.python"
+      ],
+      "settings": {
+        "java.configuration.updateBuildConfiguration": "automatic",
+        "java.home": "/usr/lib/jvm/msopenjdk-17"
+      }
+    }
+  },
+
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
+
+  "remoteEnv": {
+    "ANDROID_HOME": "${containerEnv:ANDROID_SDK_ROOT}",
+    "JAVA_HOME": "/usr/lib/jvm/msopenjdk-17"
+  },
+
+  "forwardPorts": [],
+  
+  "portsAttributes": {},
+
+  "mounts": [
+    "source=quickdl-gradle-cache,target=/home/vscode/.gradle,type=volume"
+  ]
+}

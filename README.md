@@ -4,6 +4,8 @@
 
 > ⚠️ **Note**: *QuickDL is a **demo version** of an ongoing, more advanced project named **Downsy*** — a full-featured video utility app currently in development with broader capabilities, UI enhancements, and improved parrallel download support.
 
+> 🚀 **Quick Start**: New to the project? Check out **[QUICKSTART.md](QUICKSTART.md)** for a 2-minute setup guide for GitHub Codespaces!
+
 ---
 
 ## 🚀 Features
@@ -68,6 +70,26 @@
 * Android SDK 24+
 * Chaquopy plugin
 * Internet access for initial build to include yt-dlp (afterwards works offline)
+
+---
+
+## 🔧 Development Setup
+
+### Option 1: GitHub Codespaces (Recommended)
+
+Open this repository in GitHub Codespaces for automatic environment setup:
+
+1. Click the green "Code" button
+2. Select "Codespaces" tab
+3. Click "Create codespace on main"
+
+The environment will be automatically configured with Java, Android SDK, and all dependencies.
+
+📖 **[See detailed Codespace setup guide](CODESPACE_SETUP.md)**
+
+### Option 2: Local Development
+
+For local development setup instructions, see **[CODESPACE_SETUP.md](CODESPACE_SETUP.md)** - it includes both automated and manual setup guides.
 
 ---
 
