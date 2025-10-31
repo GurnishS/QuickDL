@@ -137,8 +137,11 @@ If you're having connectivity problems:
 - Once dependencies are cached, most operations work offline
 - Chaquopy downloads yt-dlp during the first build
 
+**For more detailed troubleshooting**, see **[TROUBLESHOOTING.md](TROUBLESHOOTING.md)**
+
 ## 📚 Learn More
 
+- **[Troubleshooting Guide](TROUBLESHOOTING.md)** - Common issues and solutions
 - **[Full Setup Guide](CODESPACE_SETUP.md)** - Detailed setup instructions
 - **[Main README](README.md)** - Project features and overview
 - **[Chaquopy Docs](https://chaquo.com/chaquopy/)** - Python integration

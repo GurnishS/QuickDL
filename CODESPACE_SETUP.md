@@ -236,12 +236,22 @@ emulator -avd test_device
 
 **Note**: Running an emulator in Codespaces may have performance limitations. Physical device testing via ADB over network is recommended.
 
+## Troubleshooting
+
+For detailed troubleshooting help, see **[TROUBLESHOOTING.md](TROUBLESHOOTING.md)** which covers:
+- Build issues
+- Environment setup problems
+- Dependency resolution
+- Codespace-specific issues
+- And more...
+
 ## Support
 
 If you encounter issues not covered here:
-1. Check the [main README](README.md) for project-specific information
-2. Review build.gradle.kts for dependency requirements
-3. Open an issue on GitHub with details about the error
+1. Check **[TROUBLESHOOTING.md](TROUBLESHOOTING.md)** for common issues and solutions
+2. Check the [main README](README.md) for project-specific information
+3. Review build.gradle.kts for dependency requirements
+4. Open an issue on GitHub with details about the error
 
 ## Quick Reference
 
