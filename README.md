@@ -5,6 +5,8 @@
 > ⚠️ **Note**: *QuickDL is a **demo version** of an ongoing, more advanced project named **Downsy*** — a full-featured video utility app currently in development with broader capabilities, UI enhancements, and improved parrallel download support.
 
 > 🚀 **Quick Start**: New to the project? Check out **[QUICKSTART.md](QUICKSTART.md)** for a 2-minute setup guide for GitHub Codespaces!
+>
+> 📚 **Documentation**: See **[DOCS_INDEX.md](DOCS_INDEX.md)** for a complete guide to all documentation.
 
 ---
 
