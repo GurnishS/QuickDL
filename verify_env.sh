@@ -30,11 +30,17 @@ print_status() {
 # Check Java
 echo "Checking Java..."
 if command -v java &> /dev/null; then
-    JAVA_VERSION=$(java -version 2>&1 | awk -F '"' '/version/ {print $2}' | cut -d'.' -f1)
-    if [ "$JAVA_VERSION" -ge 17 ]; then
-        print_status 0 "Java 17+ is installed (found version: $(java -version 2>&1 | awk -F '"' '/version/ {print $2}'))"
+    JAVA_VERSION_STRING=$(java -version 2>&1 | awk -F '"' '/version/ {print $2}')
+    # Handle both "17.0.16" and "1.8.0" version formats
+    JAVA_MAJOR=$(echo $JAVA_VERSION_STRING | cut -d'.' -f1)
+    if [ "$JAVA_MAJOR" = "1" ]; then
+        # For older Java versions like 1.8.0, the major version is the second number
+        JAVA_MAJOR=$(echo $JAVA_VERSION_STRING | cut -d'.' -f2)
+    fi
+    if [ "$JAVA_MAJOR" -ge 17 ] 2>/dev/null; then
+        print_status 0 "Java 17+ is installed (found version: $JAVA_VERSION_STRING)"
     else
-        print_status 1 "Java version is too old (need 17+, found: $(java -version 2>&1 | awk -F '"' '/version/ {print $2}'))"
+        print_status 1 "Java version is too old (need 17+, found: $JAVA_VERSION_STRING)"
     fi
 else
     print_status 1 "Java is not installed"
@@ -108,11 +114,12 @@ fi
 echo ""
 echo "Checking Python..."
 if command -v python3 &> /dev/null; then
-    PYTHON_VERSION=$(python3 --version 2>&1 | awk '{print $2}' | cut -d'.' -f1,2)
-    PYTHON_MAJOR=$(echo $PYTHON_VERSION | cut -d'.' -f1)
-    PYTHON_MINOR=$(echo $PYTHON_VERSION | cut -d'.' -f2)
+    PYTHON_VERSION_STRING=$(python3 --version 2>&1 | awk '{print $2}')
+    PYTHON_MAJOR=$(echo $PYTHON_VERSION_STRING | cut -d'.' -f1)
+    PYTHON_MINOR=$(echo $PYTHON_VERSION_STRING | cut -d'.' -f2)
     
-    if [ "$PYTHON_MAJOR" -ge 3 ] && [ "$PYTHON_MINOR" -ge 11 ]; then
+    # Check if major version is 3 and minor is >= 11, or major version is > 3
+    if [ "$PYTHON_MAJOR" -gt 3 ] 2>/dev/null || ([ "$PYTHON_MAJOR" -eq 3 ] 2>/dev/null && [ "$PYTHON_MINOR" -ge 11 ] 2>/dev/null); then
         print_status 0 "Python 3.11+ is installed (found: $(python3 --version))"
     else
         print_status 1 "Python version is too old (need 3.11+, found: $(python3 --version))"

@@ -2,7 +2,7 @@
 
 **QuickDL** is a fast, powerful, and offline-first video downloader and player Android app built using **Kotlin + Jetpack Compose**, integrating **Chaquopy** to run `yt-dlp` completely offline. It supports parallel downloads, offline video playback via **ExoPlayer**, and uses **Room** for local video management.
 
-> ⚠️ **Note**: *QuickDL is a **demo version** of an ongoing, more advanced project named **Downsy*** — a full-featured video utility app currently in development with broader capabilities, UI enhancements, and improved parrallel download support.
+> ⚠️ **Note**: *QuickDL is a **demo version** of an ongoing, more advanced project named **Downsy*** — a full-featured video utility app currently in development with broader capabilities, UI enhancements, and improved parallel download support.
 
 > 🚀 **Quick Start**: New to the project? Check out **[QUICKSTART.md](QUICKSTART.md)** for a 2-minute setup guide for GitHub Codespaces!
 >
